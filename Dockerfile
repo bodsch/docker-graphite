@@ -3,7 +3,7 @@ FROM alpine:3.7
 
 ENV \
   TERM=xterm \
-  BUILD_DATE="2017-12-22" \
+  BUILD_DATE="2018-01-18" \
   BUILD_TYPE="stable" \
   GRAPHITE_VERSION="1.1.1"
 
@@ -13,7 +13,7 @@ ENV \
 EXPOSE 2003 2003/udp 7002 8080
 
 LABEL \
-  version="1712" \
+  version="1801" \
   maintainer="Bodo Schulz <bodo@boone-schulz.de>" \
   org.label-schema.build-date=${BUILD_DATE} \
   org.label-schema.name="Graphite Docker Image" \
@@ -34,7 +34,7 @@ RUN \
   apk add --quiet --no-cache --virtual .build-deps \
     build-base git libffi-dev py2-pip python2-dev && \
   apk add --quiet --no-cache \
-    cairo mysql-client nginx supervisor python2 py2-cairo py2-parsing py-mysqldb && \
+    cairo curl mariadb-client nginx supervisor python2 py2-cairo py2-parsing py-mysqldb && \
   pip install \
     --quiet --trusted-host http://d.pypi.python.org/simple --upgrade pip && \
   mkdir /src && \
