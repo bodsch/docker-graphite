@@ -53,6 +53,8 @@ RUN \
   cd /src/carbon       &&  python -W ignore::UserWarning:distutils.dist setup.py install --quiet > /dev/null && \
   cd /src/graphite-web &&  python -W ignore::UserWarning:distutils.dist setup.py install --quiet > /dev/null && \
   mv /opt/graphite/conf/graphite.wsgi.example /opt/graphite/webapp/graphite/graphite_wsgi.py && \
+  mv /src/carbon/lib/carbon/tests/data/conf-directory/storage-aggregation.conf /opt/graphite/conf/storage-aggregation.conf-DIST && \
+  mv /src/carbon/lib/carbon/tests/data/conf-directory/storage-schemas.conf /opt/graphite/conf/storage-schemas.conf-DIST && \
   apk del --quiet .build-deps && \
   rm -rf \
     /src \
