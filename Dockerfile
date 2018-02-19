@@ -5,7 +5,7 @@ ENV \
   TERM=xterm \
   BUILD_DATE="2018-01-18" \
   BUILD_TYPE="stable" \
-  GRAPHITE_VERSION="1.1.1"
+  GRAPHITE_VERSION="1.1.2"
 
 # 2003: Carbon line receiver port
 # 7002: Carbon cache query port
