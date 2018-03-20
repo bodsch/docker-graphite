@@ -3,9 +3,9 @@ FROM alpine:3.7
 
 ENV \
   TERM=xterm \
-  BUILD_DATE="2018-01-18" \
+  BUILD_DATE="2018-03-20" \
   BUILD_TYPE="stable" \
-  GRAPHITE_VERSION="1.1.1"
+  GRAPHITE_VERSION="1.1.2"
 
 # 2003: Carbon line receiver port
 # 7002: Carbon cache query port
@@ -13,7 +13,7 @@ ENV \
 EXPOSE 2003 2003/udp 7002 8080
 
 LABEL \
-  version="1801" \
+  version="1803" \
   maintainer="Bodo Schulz <bodo@boone-schulz.de>" \
   org.label-schema.build-date=${BUILD_DATE} \
   org.label-schema.name="Graphite Docker Image" \
