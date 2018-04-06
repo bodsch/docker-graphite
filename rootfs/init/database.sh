@@ -1,19 +1,19 @@
 
 DATABASE_TYPE=${DATABASE_TYPE:-sqlite}
 
-if [ "${DATABASE_TYPE}" == "sqlite" ]
+if [[ "${DATABASE_TYPE}" == "sqlite" ]]
 then
 
-  echo " [i] use sqlite backend"
+  log_info "use sqlite backend"
   . /init/database/sqlite.sh
 
-elif [ "${DATABASE_TYPE}" == "mysql" ]
+elif [[ "${DATABASE_TYPE}" == "mysql" ]]
 then
 
-  echo " [i] use mysql backend"
+  log_info "use mysql backend"
   . /init/database/mysql.sh
 
 else
-  echo " [E] unsupported Databasetype '${DATABASE_TYPE}'"
+  log_error "unsupported Databasetype '${DATABASE_TYPE}'"
   exit 1
 fi

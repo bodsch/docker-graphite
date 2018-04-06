@@ -8,12 +8,21 @@ REPO     = docker-graphite
 NAME     = graphite
 INSTANCE = default
 
-.PHONY: build push shell run start stop rm release
+BUILD_DATE := $(shell date +%Y-%m-%d)
+GRAPHITE_VERSION ?= 1.1.3
+PYTHON_VERSION ?= 2
+BUILD_TYPE ?= stable
 
+.PHONY: build push shell run start stop rm release params
 
-build:
+build:	params
 	docker build \
 		--rm \
+		--compress \
+		--build-arg BUILD_DATE=$(BUILD_DATE) \
+		--build-arg GRAPHITE_VERSION=${GRAPHITE_VERSION} \
+		--build-arg PYTHON_VERSION=${PYTHON_VERSION} \
+		--build-arg BUILD_TYPE=${BUILD_TYPE} \
 		--tag $(NS)/$(REPO):$(VERSION) .
 
 clean:
@@ -77,6 +86,14 @@ rm:
 release: build
 	make push -e VERSION=$(VERSION)
 
+
+params:
+	@echo ""
+	@echo " GRAPHITE_VERSION: ${GRAPHITE_VERSION}"
+	@echo " PYTHON_VERSION  : ${PYTHON_VERSION}"
+	@echo " BUILD_DATE      : $(BUILD_DATE)"
+	@echo " BUILD_TYPE      : $(BUILD_TYPE)"
+	@echo ""
+
+
 default: build
-
-

@@ -2,10 +2,8 @@
 #
 
 
-if [ ${DEBUG} ]
-then
-  set -x
-fi
+[[ ${DEBUG} ]] && set -x
+[[ -f /etc/enviroment ]] && . /etc/enviroment
 
 WORK_DIR="/srv"
 
@@ -16,11 +14,17 @@ USE_EXTERNAL_CARBON=${USE_EXTERNAL_CARBON:-false}
 
 CONFIG_FILE="/opt/graphite/webapp/graphite/local_settings.py"
 
+. /init/output.sh
+
 # -------------------------------------------------------------------------------------------------
 
 prepare() {
 
-  [ -d ${WORK_DIR}/graphite ] || mkdir -p ${WORK_DIR}/graphite
+  log_info "---------------------------------------------------"
+  log_info "  graphite ${GRAPHITE_VERSION} (${BUILD_TYPE}) build: ${BUILD_DATE}"
+  log_info "---------------------------------------------------"
+
+  [[ -d ${WORK_DIR}/graphite ]] || mkdir -p ${WORK_DIR}/graphite
 
   sed -i \
     "s|%STORAGE_PATH%|${WORK_DIR}|g" \
@@ -30,16 +34,13 @@ prepare() {
 
   chown -R nginx ${WORK_DIR}/graphite/storage
 
-  if [ ! -f ${CONFIG_FILE} ]
-  then
-    cp ${CONFIG_FILE}-DIST ${CONFIG_FILE}
-  fi
+  [[ -f ${CONFIG_FILE} ]] || cp ${CONFIG_FILE}-DIST ${CONFIG_FILE}
 
   sed -i \
     -e "s|%STORAGE_PATH%|${WORK_DIR}|g" \
     ${CONFIG_FILE}
 
-  if [ ! -z ${MEMCACHE_HOST} ]
+  if [[ ! -z ${MEMCACHE_HOST} ]]
   then
     sed -i \
       -e 's|%MEMCACHE_HOST%|'${MEMCACHE_HOST}'|g' \
@@ -48,15 +49,13 @@ prepare() {
       ${CONFIG_FILE}
   fi
 
-  [ -d /var/log/graphite ] || mkdir /var/log/graphite
+  [[ -d /var/log/graphite ]] || mkdir /var/log/graphite
   chown nginx: /var/log/graphite
 
-  # we will use another carbon service, like go-carbon
-  if [ ${USE_EXTERNAL_CARBON} == true ]
-  then
-    rm -f /etc/supervisor.d/carbon-cache.ini
-  fi
+  [[ -d /var/log/nginx ]] || mkdir /var/log/nginx
 
+  # we will use another carbon service, like go-carbon
+  [[ ${USE_EXTERNAL_CARBON} == true ]] && rm -f /etc/supervisor.d/carbon-cache.ini
 }
 
 
@@ -69,14 +68,11 @@ setup() {
 }
 
 
-startSupervisor() {
+start_supervisor() {
 
-  echo -e "\n Starting Supervisor.\n\n"
+  log_info "starting supervisor"
 
-  if [ -f /etc/supervisord.conf ]
-  then
-    /usr/bin/supervisord -c /etc/supervisord.conf >> /dev/null
-  fi
+  [[ -f /etc/supervisord.conf ]] && /usr/bin/supervisord -c /etc/supervisord.conf >> /dev/null
 }
 
 # -------------------------------------------------------------------------------------------------
@@ -89,13 +85,9 @@ run() {
 
   setup
 
-  startSupervisor
+  start_supervisor
 }
 
 run
 
 # EOF
-
-
-
-

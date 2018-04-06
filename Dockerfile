@@ -1,11 +1,14 @@
 
-FROM alpine:3.7
+FROM alpine:3.7 as builder
+
+ARG BUILD_DATE
+ARG GRAPHITE_VERSION
+ARG PYTHON_VERSION
+ARG BUILD_TYPE
 
 ENV \
-  TERM=xterm \
-  BUILD_DATE="2018-03-20" \
-  BUILD_TYPE="stable" \
-  GRAPHITE_VERSION="1.1.2"
+  TZ='Europe/Berlin' \
+  TERM=xterm
 
 # 2003: Carbon line receiver port
 # 7002: Carbon cache query port
@@ -13,7 +16,7 @@ ENV \
 EXPOSE 2003 2003/udp 7002 8080
 
 LABEL \
-  version="1803" \
+  version="1804" \
   maintainer="Bodo Schulz <bodo@boone-schulz.de>" \
   org.label-schema.build-date=${BUILD_DATE} \
   org.label-schema.name="Graphite Docker Image" \
@@ -29,13 +32,17 @@ LABEL \
 # ---------------------------------------------------------------------------------------
 
 RUN \
+  echo "export TZ=${TZ}"                              > /etc/enviroment && \
+  echo "export BUILD_DATE=${BUILD_DATE}"             >> /etc/enviroment && \
+  echo "export BUILD_TYPE=${BUILD_TYPE}"             >> /etc/enviroment && \
+  echo "export GRAPHITE_VERSION=${GRAPHITE_VERSION}" >> /etc/enviroment && \
   apk update --quiet --no-cache && \
   apk upgrade --quiet --no-cache && \
   apk add --quiet --no-cache --virtual .build-deps \
-    build-base git libffi-dev py2-pip python2-dev && \
+    build-base git libffi-dev py${PYTHON_VERSION}-pip python${PYTHON_VERSION}-dev && \
   apk add --quiet --no-cache \
-    cairo curl mariadb-client nginx supervisor python2 py2-cairo py2-parsing py-mysqldb && \
-  pip install \
+    cairo curl mariadb-client nginx supervisor python${PYTHON_VERSION} py${PYTHON_VERSION}-cairo py${PYTHON_VERSION}-parsing py-mysqldb && \
+  pip${PYTHON_VERSION} install \
     --quiet --trusted-host http://d.pypi.python.org/simple --upgrade pip && \
   mkdir /src && \
   git clone https://github.com/graphite-project/whisper.git      /src/whisper      && \
@@ -48,7 +55,10 @@ RUN \
       git checkout tags/${GRAPHITE_VERSION} 2> /dev/null ; \
     done ; \
   fi && \
-  cd /src/graphite-web &&  pip install --quiet --requirement requirements.txt && \
+  if [[ "${PYTHON_VERSION}" = 3 ]] ; then \
+     sed -i 's|^python-memcached|# python-memcached|g' /src/graphite-web/requirements.txt; \
+  fi && \
+  cd /src/graphite-web &&  pip${PYTHON_VERSION} install --quiet --requirement requirements.txt && \
   cd /src/whisper      &&  python -W ignore::UserWarning:distutils.dist setup.py install --quiet > /dev/null && \
   cd /src/carbon       &&  python -W ignore::UserWarning:distutils.dist setup.py install --quiet > /dev/null && \
   cd /src/graphite-web &&  python -W ignore::UserWarning:distutils.dist setup.py install --quiet > /dev/null && \
