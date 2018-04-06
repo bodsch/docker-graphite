@@ -19,7 +19,7 @@ build:	params
 	docker build \
 		--rm \
 		--compress \
-		--build-arg BUILD_DATE=$(BUILD_DATE) \
+		--build-arg BUILD_DATE=${BUILD_DATE} \
 		--build-arg GRAPHITE_VERSION=${GRAPHITE_VERSION} \
 		--build-arg PYTHON_VERSION=${PYTHON_VERSION} \
 		--build-arg BUILD_TYPE=${BUILD_TYPE} \
