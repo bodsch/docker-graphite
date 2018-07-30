@@ -1,5 +1,5 @@
 
-FROM alpine:3.7 as builder
+FROM alpine:3.8
 
 ARG BUILD_DATE
 ARG GRAPHITE_VERSION
@@ -16,7 +16,7 @@ ENV \
 EXPOSE 2003 2003/udp 7002 8080
 
 LABEL \
-  version="1804" \
+  version="1807" \
   maintainer="Bodo Schulz <bodo@boone-schulz.de>" \
   org.label-schema.build-date=${BUILD_DATE} \
   org.label-schema.name="Graphite Docker Image" \
