@@ -26,20 +26,20 @@ build:	params
 		--build-arg BUILD_TYPE=$(BUILD_TYPE) \
 		--build-arg GRAPHITE_VERSION=${GRAPHITE_VERSION} \
 		--build-arg PYTHON_VERSION=${PYTHON_VERSION} \
-		--tag $(NS)/$(REPO):$(VERSION) .
+		--tag $(NS)/$(REPO):$(GRAPHITE_VERSION) .
 
 clean:
 	docker rmi \
 		--force \
-		$(NS)/$(REPO):$(VERSION)
+		$(NS)/$(REPO):$(GRAPHITE_VERSION)
 
 history:
 	docker history \
-		$(NS)/$(REPO):$(VERSION)
+		$(NS)/$(REPO):$(GRAPHITE_VERSION)
 
 push:
 	docker push \
-		$(NS)/$(REPO):$(VERSION)
+		$(NS)/$(REPO):$(GRAPHITE_VERSION)
 
 shell:
 	docker run \
@@ -50,7 +50,7 @@ shell:
 		$(PORTS) \
 		$(VOLUMES) \
 		$(ENV) \
-		$(NS)/$(REPO):$(VERSION) \
+		$(NS)/$(REPO):$(GRAPHITE_VERSION) \
 		/bin/sh
 
 run:
@@ -60,7 +60,7 @@ run:
 		$(PORTS) \
 		$(VOLUMES) \
 		$(ENV) \
-		$(NS)/$(REPO):$(VERSION)
+		$(NS)/$(REPO):$(GRAPHITE_VERSION)
 
 exec:
 	docker exec \
@@ -76,7 +76,7 @@ start:
 		$(PORTS) \
 		$(VOLUMES) \
 		$(ENV) \
-		$(NS)/$(REPO):$(VERSION)
+		$(NS)/$(REPO):$(GRAPHITE_VERSION)
 
 stop:
 	docker stop \
@@ -87,7 +87,7 @@ rm:
 		$(NAME)-$(INSTANCE)
 
 release: build
-	make push -e VERSION=$(VERSION)
+	make push -e VERSION=$(GRAPHITE_VERSION)
 
 
 params:
