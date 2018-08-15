@@ -12,15 +12,29 @@ env:
     - BUILD_TYPE=stable
     - BUILD_DATE=$(date +"%Y-%m-%d")
 
-script:
-  - make
-  - docker run --detach --name graphite bodsch/docker-graphite
-  - docker ps | grep -q graphite
+jobs:
+  include:
+    - stage: build
+      script:
+        - make
 
-after_success:
-  - |
-    [ "${TRAVIS_BRANCH}" == "master" ] && curl \
-      --request POST \
-      --header "Content-Type: application/json"  \
-      --data '{"source_type":"Branch","source_name":"master"}' \
-      https://registry.hub.docker.com/u/bodsch/docker-graphite/trigger/${DOCKER_HUB_TOKEN}/
+    - stage: build and test
+      script:
+        - make
+        - docker run --detach --name graphite bodsch/docker-graphite
+        - docker ps | grep -q graphite
+
+    - stage: push latest docker image
+      script:
+        - make build
+        - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+        - docker tag ${DOCKER_USERNAME}/docker-graphite:${GRAPHITE_VERSION} ${DOCKER_USERNAME}/docker-graphite:latest
+        - docker push ${DOCKER_USERNAME}/docker-graphite:latest
+        - docker logout
+
+    - stage: push version docker image
+      script:
+        - make build
+        - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+        - docker push ${DOCKER_USERNAME}/docker-graphite:${GRAPHITE_VERSION}
+        - docker logout

@@ -2,9 +2,10 @@
 FROM alpine:3.8
 
 ARG BUILD_DATE
+ARG BUILD_VERSION
+ARG BUILD_TYPE
 ARG GRAPHITE_VERSION
 ARG PYTHON_VERSION
-ARG BUILD_TYPE
 
 ENV \
   TZ='Europe/Berlin' \
@@ -15,35 +16,22 @@ ENV \
 # 8080: Graphite-Web port
 EXPOSE 2003 2003/udp 7002 8080
 
-LABEL \
-  version="1807" \
-  maintainer="Bodo Schulz <bodo@boone-schulz.de>" \
-  org.label-schema.build-date=${BUILD_DATE} \
-  org.label-schema.name="Graphite Docker Image" \
-  org.label-schema.description="Inofficial Graphite Docker Image" \
-  org.label-schema.url="https://graphite.readthedocs.io/en/latest/index.html" \
-  org.label-schema.vcs-url="https://github.com/bodsch/docker-graphite" \
-  org.label-schema.vendor="Bodo Schulz" \
-  org.label-schema.version=${GRAPHITE_VERSION} \
-  org.label-schema.schema-version="1.0" \
-  com.microscaling.docker.dockerfile="/Dockerfile" \
-  com.microscaling.license="The Unlicense"
-
 # ---------------------------------------------------------------------------------------
 
 RUN \
-  echo "export TZ=${TZ}"                              > /etc/enviroment && \
-  echo "export BUILD_DATE=${BUILD_DATE}"             >> /etc/enviroment && \
+  echo "export BUILD_DATE=${BUILD_DATE}"              > /etc/enviroment && \
   echo "export BUILD_TYPE=${BUILD_TYPE}"             >> /etc/enviroment && \
   echo "export GRAPHITE_VERSION=${GRAPHITE_VERSION}" >> /etc/enviroment && \
   apk update --quiet --no-cache && \
   apk upgrade --quiet --no-cache && \
   apk add --quiet --no-cache --virtual .build-deps \
-    build-base git libffi-dev py${PYTHON_VERSION}-pip python${PYTHON_VERSION}-dev && \
+    build-base git libffi-dev py${PYTHON_VERSION}-pip python${PYTHON_VERSION}-dev tzdata && \
   apk add --quiet --no-cache \
     cairo curl mariadb-client nginx supervisor python${PYTHON_VERSION} py${PYTHON_VERSION}-cairo py${PYTHON_VERSION}-parsing py-mysqldb && \
   pip${PYTHON_VERSION} install \
     --quiet --trusted-host http://d.pypi.python.org/simple --upgrade pip && \
+  cp /usr/share/zoneinfo/${TZ} /etc/localtime && \
+  echo ${TZ} > /etc/timezone && \
   mkdir /src && \
   git clone https://github.com/graphite-project/whisper.git      /src/whisper      && \
   git clone https://github.com/graphite-project/carbon.git       /src/carbon       && \
@@ -83,5 +71,21 @@ HEALTHCHECK \
   CMD curl --silent --fail http://localhost:8080 || exit 1
 
 CMD [ "/init/run.sh" ]
+
+# ---------------------------------------------------------------------------------------
+
+LABEL \
+  version="${BUILD_VERSION}" \
+  maintainer="Bodo Schulz <bodo@boone-schulz.de>" \
+  org.label-schema.build-date=${BUILD_DATE} \
+  org.label-schema.name="Graphite Docker Image" \
+  org.label-schema.description="Inofficial Graphite Docker Image" \
+  org.label-schema.url="https://graphite.readthedocs.io/en/latest/index.html" \
+  org.label-schema.vcs-url="https://github.com/bodsch/docker-graphite" \
+  org.label-schema.vendor="Bodo Schulz" \
+  org.label-schema.version=${GRAPHITE_VERSION} \
+  org.label-schema.schema-version="1.0" \
+  com.microscaling.docker.dockerfile="/Dockerfile" \
+  com.microscaling.license="The Unlicense"
 
 # ---------------------------------------------------------------------------------------
