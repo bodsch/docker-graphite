@@ -21,7 +21,7 @@ jobs:
     - stage: build and test
       script:
         - make
-        - docker run --detach --name graphite bodsch/docker-graphite
+        - docker run --detach --name graphite bodsch/docker-graphite:${GRAPHITE_VERSION}
         - docker ps | grep -q graphite
 
     - stage: push latest docker image

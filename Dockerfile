@@ -46,6 +46,8 @@ RUN \
   if [[ "${PYTHON_VERSION}" = 3 ]] ; then \
      sed -i 's|^python-memcached|# python-memcached|g' /src/graphite-web/requirements.txt; \
   fi && \
+  # add  fix for https://github.com/graphite-project/graphite-web/pull/2331
+  sed -i 's|^whitenoise$|whitenoise==3.3.1|' /src/graphite-web/requirements.txt && \
   cd /src/graphite-web &&  pip${PYTHON_VERSION} install --quiet --requirement requirements.txt && \
   cd /src/whisper      &&  python -W ignore::UserWarning:distutils.dist setup.py install --quiet > /dev/null && \
   cd /src/carbon       &&  python -W ignore::UserWarning:distutils.dist setup.py install --quiet > /dev/null && \
