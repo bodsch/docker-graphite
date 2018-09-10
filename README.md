@@ -1,13 +1,41 @@
 docker-graphite
 =================
 
-A Docker container for an complete graphite Stack. Usable in combination with Grafana.
+A docker container for an complete graphite stack. Usable in combination with Grafana.
+
+Supports python 2 and 3.
+
+Switch supported python version at build time:
+
+```bash
+$ export PYTHON_VERSION=2
+$ make
+$ make run
+
+
+[2018-09-10 13:47:20 +0000]  starting supervisor
+[2018-09-10 13:47:20 +0000]  -----------------------------------------------------------
+[2018-09-10 13:47:20 +0000]   graphite 1.1.4 (stable) / python 2.7.15 build: 2018-09-10
+[2018-09-10 13:47:20 +0000]  -----------------------------------------------------------
+```
+
+```bash
+$ export PYTHON_VERSION=3
+$ make
+$ make run
+
+
+[2018-09-10 13:47:20 +0000]  starting supervisor
+[2018-09-10 13:50:12 +0000]  -----------------------------------------------------------
+[2018-09-10 13:50:12 +0000]   graphite 1.1.4 (stable) / python 3.6.6 build: 2018-09-10
+[2018-09-10 13:50:12 +0000]  -----------------------------------------------------------
+```
 
 # Status
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/bodsch/docker-graphite.svg?branch)][hub]
-[![Image Size](https://images.microbadger.com/badges/image/bodsch/docker-graphite.svg?branch)][microbadger]
-[![Build Status](https://travis-ci.org/bodsch/docker-graphite.svg?branch)][travis]
+[![Docker Pulls](https://img.shields.io/docker/pulls/bodsch/docker-graphite.svg)][hub]
+[![Image Size](https://images.microbadger.com/badges/image/bodsch/docker-graphite.svg)][microbadger]
+[![Build Status](https://travis-ci.org/bodsch/docker-graphite.svg)][travis]
 
 [hub]: https://hub.docker.com/r/bodsch/docker-graphite/
 [microbadger]: https://microbadger.com/images/bodsch/docker-graphite
@@ -67,16 +95,17 @@ Notes:
 - `MYSQL_PORT`
 - `MYSQL_ROOT_USER` (default: `root`)
 - `MYSQL_ROOT_PASS`
+- `DATABASE_GRAPHITE_PASS` (default: `graphite`)
 - `MEMCACHE_HOST`
 - `MEMCACHE_PORT` (default: `11211`)
-- `DATABASE_GRAPHITE_PASS` (default: `graphite`)
 - `USE_EXTERNAL_CARBON` (default: `false`)
+
 
 ## Limitations
 
-The Database store only Dashboard and i think, **grafana** are the better Tools for this part.
+The database store only dashboards and i think, **grafana** are the better tools for this part.
 
-Conclusion, I do not use the database feature of graphite (sorry, guys).
+Conclusion, i do not use the database feature of graphite (sorry, guys).
 The `sqlite` database will only created in the `/tmp` directory and not used.
 
 When your using a external carbon-writer (like `go-carbon`) you do not need the internal carbon.
@@ -84,10 +113,10 @@ You can disable this part with `USE_EXTERNAL_CARBON`.
 
 
 # includes
- - graphite-web
- - whisper
- - carbon-cache
- - nginx
+- graphite-web
+- whisper
+- carbon-cache
+- nginx
 
 
 # Ports
@@ -102,11 +131,11 @@ The configuration is located at `/opt/graphite/conf/storage-schemas.conf` and ha
 ```bash
 [carbon]
 pattern = ^carbon\.
-retentions = 60:90d
+retentions = 30s:7d,5m:30d,1h:720d
 
-[default_1min_for_1day]
+[default]
 pattern = .*
-retentions = 60s:1d
+retentions = 30s:6h,1m:15d,5m:30d,10m:240d
 ```
 
 Each section has:
@@ -132,9 +161,4 @@ Additionally, this example uses multiple retentions:
 
 To calculate the whisper file size, I can recommend this tool: [whisper-calculator](https://m30m.github.io/whisper-calculator/)
 ([gist](https://gist.github.com/jjmaestro/5774063))
-
-
-
-
-
 

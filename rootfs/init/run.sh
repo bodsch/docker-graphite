@@ -20,11 +20,9 @@ CONFIG_FILE="/opt/graphite/webapp/graphite/local_settings.py"
 
 prepare() {
 
-  log_info "---------------------------------------------------"
-  log_info "  graphite ${GRAPHITE_VERSION} (${BUILD_TYPE}) build: ${BUILD_DATE}"
-  log_info "---------------------------------------------------"
-
   [[ -d ${WORK_DIR}/graphite ]] || mkdir -p ${WORK_DIR}/graphite
+
+  [[ -d /opt/graphite/static ]] || mkdir -p /opt/graphite/static
 
   sed -i \
     "s|%STORAGE_PATH%|${WORK_DIR}|g" \
@@ -50,9 +48,10 @@ prepare() {
   fi
 
   [[ -d /var/log/graphite ]] || mkdir /var/log/graphite
-  chown nginx: /var/log/graphite
-
   [[ -d /var/log/nginx ]] || mkdir /var/log/nginx
+
+  chown -R nginx: /var/log/graphite
+  chown -R nginx: /var/log/nginx
 
   # we will use another carbon service, like go-carbon
   [[ ${USE_EXTERNAL_CARBON} == true ]] && rm -f /etc/supervisor.d/carbon-cache.ini
@@ -70,7 +69,13 @@ setup() {
 
 start_supervisor() {
 
+  python_version=$(python --version 2>&1 | sed 's|Python ||g')
+
   log_info "starting supervisor"
+
+  log_info "-----------------------------------------------------------"
+  log_info " graphite ${GRAPHITE_VERSION} (${BUILD_TYPE}) / python ${python_version} build: ${BUILD_DATE}"
+  log_info "-----------------------------------------------------------"
 
   [[ -f /etc/supervisord.conf ]] && /usr/bin/supervisord -c /etc/supervisord.conf >> /dev/null
 }

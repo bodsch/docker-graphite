@@ -19,17 +19,37 @@ EXPOSE 2003 2003/udp 7002 8080
 # ---------------------------------------------------------------------------------------
 
 RUN \
-  echo "export BUILD_DATE=${BUILD_DATE}"              > /etc/enviroment && \
-  echo "export BUILD_TYPE=${BUILD_TYPE}"             >> /etc/enviroment && \
-  echo "export GRAPHITE_VERSION=${GRAPHITE_VERSION}" >> /etc/enviroment && \
-  apk update --quiet --no-cache && \
+  echo "export BUILD_DATE=${BUILD_DATE}"              > /etc/profile.d/graphite.sh && \
+  echo "export BUILD_TYPE=${BUILD_TYPE}"             >> /etc/profile.d/graphite.sh && \
+  echo "export GRAPHITE_VERSION=${GRAPHITE_VERSION}" >> /etc/profile.d/graphite.sh && \
+  apk update  --quiet --no-cache && \
   apk upgrade --quiet --no-cache && \
-  apk add --quiet --no-cache --virtual .build-deps \
-    build-base git libffi-dev py${PYTHON_VERSION}-pip python${PYTHON_VERSION}-dev tzdata && \
+  apk add     --quiet --no-cache --virtual .build-deps \
+    build-base git libffi-dev libressl-dev py${PYTHON_VERSION}-pip python${PYTHON_VERSION}-dev tzdata && \
   apk add --quiet --no-cache \
-    cairo curl mariadb-client nginx supervisor python${PYTHON_VERSION} py${PYTHON_VERSION}-cairo py${PYTHON_VERSION}-parsing py-mysqldb && \
-  pip${PYTHON_VERSION} install \
-    --quiet --trusted-host http://d.pypi.python.org/simple --upgrade pip && \
+    cairo curl mariadb-client nginx python${PYTHON_VERSION} py${PYTHON_VERSION}-cairo py${PYTHON_VERSION}-parsing && \
+  if [[ "${PYTHON_VERSION}" = 2 ]] ; then \
+    apk add --quiet --no-cache \
+      supervisor py-mysqldb && \
+    pip${PYTHON_VERSION} install \
+      --quiet --trusted-host http://d.pypi.python.org/simple --upgrade pip ; \
+  elif [[ "${PYTHON_VERSION}" = 3 ]] ; then \
+    python3 -m ensurepip && \
+    rm -r /usr/lib/python*/ensurepip && \
+    pip3 install \
+      --quiet \
+      --upgrade \
+      pip setuptools && \
+    [[ ! -e /usr/bin/pip ]] && ln -s pip3 /usr/bin/pip ; \
+    [[ ! -e /usr/bin/python ]] && ln -sf /usr/bin/python3 /usr/bin/python ; \
+    pip install \
+      --quiet git+https://github.com/Supervisor/supervisor ; \
+    pip install \
+      --quiet pymysql ; \
+  else \
+    echo "wrong python version: ${PYTHON_VERSION}" ; \
+    exit 1 ; \
+  fi && \
   cp /usr/share/zoneinfo/${TZ} /etc/localtime && \
   echo ${TZ} > /etc/timezone && \
   mkdir /src && \
@@ -44,10 +64,8 @@ RUN \
     done ; \
   fi && \
   if [[ "${PYTHON_VERSION}" = 3 ]] ; then \
-     sed -i 's|^python-memcached|# python-memcached|g' /src/graphite-web/requirements.txt; \
+    sed -i 's|^python-memcached|# python-memcached|g' /src/graphite-web/requirements.txt; \
   fi && \
-  # add  fix for https://github.com/graphite-project/graphite-web/pull/2331
-  sed -i 's|^whitenoise$|whitenoise==3.3.1|' /src/graphite-web/requirements.txt && \
   cd /src/graphite-web &&  pip${PYTHON_VERSION} install --quiet --requirement requirements.txt && \
   cd /src/whisper      &&  python -W ignore::UserWarning:distutils.dist setup.py install --quiet > /dev/null && \
   cd /src/carbon       &&  python -W ignore::UserWarning:distutils.dist setup.py install --quiet > /dev/null && \
