@@ -11,7 +11,7 @@ INSTANCE = default
 BUILD_DATE        := $(shell date +%Y-%m-%d)
 BUILD_VERSION     := $(shell date +%y%m)
 BUILD_TYPE        ?= stable
-GRAPHITE_VERSION  ?= 1.1.3
+GRAPHITE_VERSION  ?= 1.1.4
 PYTHON_VERSION    ?= 2
 
 
