@@ -22,8 +22,9 @@ jobs:
       script:
         - make
         - docker run --detach --name graphite --publish 8088:8080 bodsch/docker-graphite:${GRAPHITE_VERSION}
+        - sleep 10s
         - docker ps | grep -q graphite
-        - curl --silent localhost:8088/browser/header
+        - curl --silent --fail http://localhost:8088/browser/header
 
     - stage: push latest docker image
       script:
