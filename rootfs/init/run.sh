@@ -3,7 +3,8 @@
 
 
 [[ ${DEBUG} ]] && set -x
-[[ -f /etc/enviroment ]] && . /etc/enviroment
+
+. /etc/profile
 
 WORK_DIR="/srv"
 

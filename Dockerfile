@@ -22,14 +22,14 @@ RUN \
   echo "export BUILD_DATE=${BUILD_DATE}"              > /etc/profile.d/graphite.sh && \
   echo "export BUILD_TYPE=${BUILD_TYPE}"             >> /etc/profile.d/graphite.sh && \
   echo "export GRAPHITE_VERSION=${GRAPHITE_VERSION}" >> /etc/profile.d/graphite.sh && \
-  apk update  --quiet --no-cache && \
-  apk upgrade --quiet --no-cache && \
-  apk add     --quiet --no-cache --virtual .build-deps \
+  apk update  --quiet && \
+  apk upgrade --quiet && \
+  apk add     --quiet --virtual .build-deps \
     build-base git libffi-dev libressl-dev py${PYTHON_VERSION}-pip python${PYTHON_VERSION}-dev tzdata && \
-  apk add --quiet --no-cache \
+  apk add     --quiet \
     cairo curl mariadb-client nginx python${PYTHON_VERSION} py${PYTHON_VERSION}-cairo py${PYTHON_VERSION}-parsing && \
   if [[ "${PYTHON_VERSION}" = 2 ]] ; then \
-    apk add --quiet --no-cache \
+    apk add   --quiet \
       supervisor py-mysqldb && \
     pip${PYTHON_VERSION} install \
       --quiet --trusted-host http://d.pypi.python.org/simple --upgrade pip ; \
