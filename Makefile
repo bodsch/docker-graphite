@@ -1,103 +1,46 @@
-
-include env_make
-
-NS       = bodsch
-VERSION ?= latest
-
-REPO     = docker-graphite
-NAME     = graphite
-INSTANCE = default
-
-BUILD_DATE        := $(shell date +%Y-%m-%d)
-BUILD_VERSION     := $(shell date +%y%m)
-BUILD_TYPE        ?= stable
-GRAPHITE_VERSION  ?= 1.1.4
-PYTHON_VERSION    ?= 3
+export GIT_SHA1          := $(shell git rev-parse --short HEAD)
+export DOCKER_IMAGE_NAME := graphite
+export DOCKER_NAME_SPACE := ${USER}
+export DOCKER_VERSION    ?= latest
+export BUILD_DATE        := $(shell date +%Y-%m-%d)
+export BUILD_VERSION     := $(shell date +%y%m)
+export BUILD_TYPE        ?= stable
+export GRAPHITE_VERSION  ?= 1.1.5
+export PYTHON_VERSION    ?= 3
 
 
-.PHONY: build push shell run start stop rm release params
-
-build:	params
-	docker build \
-		--rm \
-		--compress \
-		--build-arg BUILD_DATE=$(BUILD_DATE) \
-		--build-arg BUILD_VERSION=$(BUILD_VERSION) \
-		--build-arg BUILD_TYPE=$(BUILD_TYPE) \
-		--build-arg GRAPHITE_VERSION=${GRAPHITE_VERSION} \
-		--build-arg PYTHON_VERSION=${PYTHON_VERSION} \
-		--tag $(NS)/$(REPO):$(GRAPHITE_VERSION) .
-
-clean:
-	docker rmi \
-		--force \
-		$(NS)/$(REPO):$(GRAPHITE_VERSION)
-
-history:
-	docker history \
-		$(NS)/$(REPO):$(GRAPHITE_VERSION)
-
-push:
-	docker push \
-		$(NS)/$(REPO):$(GRAPHITE_VERSION)
-
-shell:
-	docker run \
-		--rm \
-		--name $(NAME)-$(INSTANCE) \
-		--interactive \
-		--tty \
-		$(PORTS) \
-		$(VOLUMES) \
-		$(ENV) \
-		$(NS)/$(REPO):$(GRAPHITE_VERSION) \
-		/bin/sh
-
-run:
-	docker run \
-		--rm \
-		--name $(NAME)-$(INSTANCE) \
-		$(PORTS) \
-		$(VOLUMES) \
-		$(ENV) \
-		$(NS)/$(REPO):$(GRAPHITE_VERSION)
-
-exec:
-	docker exec \
-		--interactive \
-		--tty \
-		$(NAME)-$(INSTANCE) \
-		/bin/sh
-
-start:
-	docker run \
-		--detach \
-		--name $(NAME)-$(INSTANCE) \
-		$(PORTS) \
-		$(VOLUMES) \
-		$(ENV) \
-		$(NS)/$(REPO):$(GRAPHITE_VERSION)
-
-stop:
-	docker stop \
-		$(NAME)-$(INSTANCE)
-
-rm:
-	docker rm \
-		$(NAME)-$(INSTANCE)
-
-release: build
-	make push -e VERSION=$(GRAPHITE_VERSION)
-
-
-params:
-	@echo ""
-	@echo " GRAPHITE_VERSION : ${GRAPHITE_VERSION}"
-	@echo " PYTHON_VERSION   : ${PYTHON_VERSION}"
-	@echo " BUILD_DATE       : $(BUILD_DATE)"
-	@echo " BUILD_VERSION    : $(BUILD_VERSION)"
-	@echo " BUILD_TYPE       : $(BUILD_TYPE)"
-	@echo ""
-
+.PHONY: build shell run exec start stop clean compose-file
 
 default: build
+
+build:
+	@hooks/build
+
+shell:
+	@hooks/shell
+
+run:
+	@hooks/run
+
+exec:
+	@hooks/exec
+
+start:
+	@hooks/start
+
+stop:
+	@hooks/stop
+
+clean:
+	@hooks/clean
+
+compose-file:
+	@hooks/compose-file
+
+linter:
+	@tests/linter.sh
+
+integration_test:
+	@tests/integration_test.sh
+
+test: linter integration_test

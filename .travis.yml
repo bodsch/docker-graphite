@@ -7,7 +7,7 @@ services:
 
 env:
   global:
-    - GRAPHITE_VERSION=${GRAPHITE_VERSION:-1.1.4}
+    - GRAPHITE_VERSION=${GRAPHITE_VERSION:-1.1.5}
     - PYTHON_VERSION=${PYTHON_VERSION:-3}
     - BUILD_TYPE=stable
     - BUILD_DATE=$(date +"%Y-%m-%d")
@@ -21,14 +21,15 @@ jobs:
     - stage: build and test
       script:
         - make
-        - docker run --detach --name graphite bodsch/docker-graphite:${GRAPHITE_VERSION}
-        - docker ps | grep -q graphite
+        - make start
+        - make test
+        - make stop
 
     - stage: push latest docker image
       script:
-        - make build
+        - make
         - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
-        - docker tag ${DOCKER_USERNAME}/docker-graphite:${GRAPHITE_VERSION} ${DOCKER_USERNAME}/docker-graphite:latest
+        - docker tag  ${USER}/graphite:latest ${DOCKER_USERNAME}/docker-graphite:latest
         - docker push ${DOCKER_USERNAME}/docker-graphite:latest
         - docker logout
 
@@ -36,5 +37,6 @@ jobs:
       script:
         - make build
         - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+        - docker tag  ${USER}/graphite:latest ${DOCKER_USERNAME}/docker-graphite:${GRAPHITE_VERSION}
         - docker push ${DOCKER_USERNAME}/docker-graphite:${GRAPHITE_VERSION}
         - docker logout

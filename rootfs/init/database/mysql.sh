@@ -15,7 +15,7 @@ else
 fi
 
 
-waitForDatabase() {
+wait_for_database() {
 
   RETRY=15
 
@@ -56,7 +56,7 @@ waitForDatabase() {
 
 }
 
-configureMysql() {
+configure_mysql() {
 
   # check if database already created ...
   #
@@ -96,8 +96,8 @@ configureMysql() {
 }
 
 
-waitForDatabase
+wait_for_database
 
-configureMysql
+configure_mysql
 
 # EOF

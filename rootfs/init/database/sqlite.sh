@@ -1,5 +1,5 @@
 
-configureSqlite() {
+configure_sqlite() {
 
   storage_directory="${WORK_DIR}/graphite"
 
@@ -14,6 +14,6 @@ configureSqlite() {
 
 }
 
-configureSqlite
+configure_sqlite
 
 # EOF
