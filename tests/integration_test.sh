@@ -40,46 +40,35 @@ wait_for_graphite() {
 
 
 send_request() {
-set -x
+
   echo ""
 
-#  curl --silent --head localhost:9001 > /dev/null
-#
-#  result=${?}
-#
-#  if [[ ${result} -eq 0 ]]
+  curl --head localhost:8080
+
+  echo ""
+
+  running=$(curl --silent -u supervisor:supervisor  http://localhost:9001 | grep -c statusrunning)
+
+  echo -e "${running} processes are running in the container.\n"
+
+#  if [[ ${running} -eq 3 ]]
 #  then
-    curl --head localhost:8080
+    data=$(curl --silent -u supervisor:supervisor  http://localhost:9001)
+
+    for (( c=0; c<=((running-1)); c++ ))
+    do
+      echo "${data}" | \
+        "${PUP_PATH}/pup" 'table tbody json{}' | \
+        jq ".[] | {
+          \"name\": .children[${c}].children[2].children[0].text,
+          \"state\": .children[${c}].children[0].children[0].text,
+          \"pip / uptime\": .children[${c}].children[1].children[0].text
+        }"
+
+    done
 
     echo ""
-
-    running=$(curl --silent -u supervisor:supervisor  http://localhost:9001 | grep -c statusrunning)
-
-    if [[ ${running} -eq 3 ]]
-    then
-      echo -e "${running} processes are running in the container.\n"
-
-      data=$(curl --silent -u supervisor:supervisor  http://localhost:9001)
-
-      for (( c=0; c<=((running-1)); c++ ))
-      do
-        echo "${data}" | \
-          "${PUP_PATH}/pup" 'table tbody json{}' | \
-          jq ".[] | {
-            \"name\": .children[${c}].children[2].children[0].text,
-            \"state\": .children[${c}].children[0].children[0].text,
-            \"pip / uptime\": .children[${c}].children[1].children[0].text
-          }"
-
-      done
-
-      echo ""
-
-    else
-      echo "ERROR: no running processes"
-    fi
 #  fi
-set +x
 }
 
 
