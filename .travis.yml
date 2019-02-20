@@ -20,12 +20,14 @@ jobs:
 
     - stage: build and test
       script:
-        - make
-        - make start
+        - make compose-file
+        - docker-compose up --build -d
         - make test
-        - make stop
+        - docker-compose kill
+        - docker-compose down
 
     - stage: push latest docker image
+      if: branch = master
       script:
         - make
         - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
@@ -34,8 +36,9 @@ jobs:
         - docker logout
 
     - stage: push version docker image
+      if: branch = master
       script:
-        - make build
+        - make
         - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
         - docker tag  ${USER}/graphite:latest ${DOCKER_USERNAME}/docker-graphite:${GRAPHITE_VERSION}
         - docker push ${DOCKER_USERNAME}/docker-graphite:${GRAPHITE_VERSION}

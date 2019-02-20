@@ -1,5 +1,16 @@
 #!/bin/bash
 
+PUP_VERSION='0.4.0'
+PUP_PATH='/usr/local/bin'
+if ! [ -x "$(command -v pup)" ]
+then
+  sudo wget -O "${PUP_PATH}/pup.zip" "https://github.com/ericchiang/pup/releases/download/v${PUP_VERSION}/pup_v${PUP_VERSION}_linux_amd64.zip"
+  sudo unzip "${PUP_PATH}/pup.zip" -d "${PUP_PATH}"
+  sudo chmod +x "${PUP_PATH}/pup"
+  sudo rm -f "${PUP_PATH}/pup.zip"
+fi
+
+
 # wait for
 #
 wait_for_graphite() {
@@ -30,17 +41,59 @@ wait_for_graphite() {
 
 send_request() {
 
-  curl --head localhost:8080
+  echo ""
+
+  curl --silent --head localhost:9001 > /dev/null
+
+  result=${?}
+
+  if [[ ${result} -eq 0 ]]
+  then
+
+    running=$(curl --silent -u supervisor:supervisor  http://localhost:9001 | grep -c statusrunning)
+
+    if [[ ${running} -eq 3 ]]
+    then
+      echo -e "${running} processes are running in the container.\n"
+
+      data=$(curl --silent -u supervisor:supervisor  http://localhost:9001)
+
+      for (( c=0; c<=((running-1)); c++ ))
+      do
+        echo "${data}" | \
+          "${PUP_PATH}/pup" 'table tbody json{}' | \
+          jq ".[] | {
+            \"name\": .children[${c}].children[2].children[0].text,
+            \"state\": .children[${c}].children[0].children[0].text,
+            \"pip / uptime\": .children[${c}].children[1].children[0].text
+          }"
+
+      done
+
+      echo ""
+
+      curl --head localhost:8080
+    else
+      echo "ERROR: no running processes"
+    fi
+  fi
 }
 
 
 inspect() {
 
+  echo ""
   echo "inspect needed containers"
   for d in $(docker ps | tail -n +2 | awk  '{print($1)}')
   do
-    docker inspect --format '{{with .State}} {{$.Name}} has pid {{.Pid}} {{end}}' ${d}
+    # docker inspect --format "{{lower .Name}}" ${d}
+    c=$(docker inspect --format '{{with .State}} {{$.Name}} has pid {{.Pid}} {{end}}' ${d})
+    s=$(docker inspect --format '{{json .State.Health }}' ${d} | jq --raw-output .Status)
+
+    printf "%-40s - %s\n"  "${c}" "${s}"
   done
+
+  echo ""
 }
 
 
@@ -55,7 +108,8 @@ then
   exit 0
 else
   echo "please run "
-  echo " make start"
+  echo " make compose-file"
+  echo " docker-compose up --build -d"
   echo "before"
 
   exit 1

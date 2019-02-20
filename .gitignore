@@ -1,3 +1,5 @@
 ## EDITORS
 .*.sw[op]
 *~
+.env
+docker-compose.yml
