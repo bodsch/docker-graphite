@@ -40,15 +40,18 @@ wait_for_graphite() {
 
 
 send_request() {
-
+set -x
   echo ""
 
-  curl --silent --head localhost:9001 > /dev/null
+#  curl --silent --head localhost:9001 > /dev/null
+#
+#  result=${?}
+#
+#  if [[ ${result} -eq 0 ]]
+#  then
+    curl --head localhost:8080
 
-  result=${?}
-
-  if [[ ${result} -eq 0 ]]
-  then
+    echo ""
 
     running=$(curl --silent -u supervisor:supervisor  http://localhost:9001 | grep -c statusrunning)
 
@@ -72,11 +75,11 @@ send_request() {
 
       echo ""
 
-      curl --head localhost:8080
     else
       echo "ERROR: no running processes"
     fi
-  fi
+#  fi
+set +x
 }
 
 
