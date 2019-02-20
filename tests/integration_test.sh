@@ -43,32 +43,30 @@ send_request() {
 
   echo ""
 
-  curl --head localhost:8080
+  curl --silent --head localhost:8080
 
   echo ""
 
-  running=$(curl --silent -u supervisor:supervisor  http://localhost:9001 | grep -c statusrunning)
+  data=$(curl --silent -u supervisor:supervisor  http://localhost:9001)
+
+  running=$(echo "${data}" | grep -c statusrunning)
 
   echo -e "${running} processes are running in the container.\n"
 
-#  if [[ ${running} -eq 3 ]]
-#  then
-    data=$(curl --silent -u supervisor:supervisor  http://localhost:9001)
+  for (( c=0; c<=2; c++ ))
+  do
+    echo "${data}" | \
+      "${PUP_PATH}/pup" 'table tbody json{}' | \
+      jq ".[] | {
+        \"name\": .children[${c}].children[2].children[0].text,
+        \"state\": .children[${c}].children[0].children[0].text,
+        \"pip / uptime\": .children[${c}].children[1].children[0].text
+      }"
 
-    for (( c=0; c<=2; c++ ))
-    do
-      echo "${data}" | \
-        "${PUP_PATH}/pup" 'table tbody json{}' | \
-        jq ".[] | {
-          \"name\": .children[${c}].children[2].children[0].text,
-          \"state\": .children[${c}].children[0].children[0].text,
-          \"pip / uptime\": .children[${c}].children[1].children[0].text
-        }"
+  done
 
-    done
+  echo ""
 
-    echo ""
-#  fi
 }
 
 
