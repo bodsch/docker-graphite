@@ -60,13 +60,12 @@ send_request() {
       jq ".[] | {
         \"name\": .children[${c}].children[2].children[0].text,
         \"state\": .children[${c}].children[0].children[0].text,
-        \"pip / uptime\": .children[${c}].children[1].children[0].text
+        \"pid / uptime\": .children[${c}].children[1].children[0].text
       }"
 
   done
 
   echo ""
-
 }
 
 
@@ -87,8 +86,8 @@ inspect() {
 }
 
 
-echo "wait 10 seconds for start"
-sleep 10s
+echo "wait 15 seconds for start"
+sleep 15s
 
 if [[ $(docker ps | tail -n +2 | wc -l) -eq 1 ]]
 then
