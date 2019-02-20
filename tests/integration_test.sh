@@ -55,7 +55,7 @@ send_request() {
 #  then
     data=$(curl --silent -u supervisor:supervisor  http://localhost:9001)
 
-    for (( c=0; c<=((running-1)); c++ ))
+    for (( c=0; c<=2; c++ ))
     do
       echo "${data}" | \
         "${PUP_PATH}/pup" 'table tbody json{}' | \
