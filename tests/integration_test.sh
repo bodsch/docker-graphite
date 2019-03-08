@@ -1,14 +1,32 @@
 #!/bin/bash
 
+HOST=127.0.0.1
+PORT=2003
+
 PUP_VERSION='0.4.0'
 PUP_PATH='/usr/local/bin'
 if ! [ -x "$(command -v pup)" ]
 then
-  sudo wget -O "${PUP_PATH}/pup.zip" "https://github.com/ericchiang/pup/releases/download/v${PUP_VERSION}/pup_v${PUP_VERSION}_linux_amd64.zip"
+  sudo curl \
+    --silent \
+    --location \
+    --output "${PUP_PATH}/pup.zip" \
+    "https://github.com/ericchiang/pup/releases/download/v${PUP_VERSION}/pup_v${PUP_VERSION}_linux_amd64.zip"
   sudo unzip "${PUP_PATH}/pup.zip" -d "${PUP_PATH}"
   sudo chmod +x "${PUP_PATH}/pup"
   sudo rm -f "${PUP_PATH}/pup.zip"
 fi
+
+#
+# Get the current hostname
+#
+host=$(hostname --short)
+
+#
+# The current time - we want all metrics to be reported at the
+# same time.
+#
+time=$(date +%s)
 
 
 # wait for
@@ -69,6 +87,61 @@ send_request() {
 }
 
 
+###
+##
+## A simple function to send data to a remote host:port address.
+##
+###
+send() {
+
+#  if [ ! -z "$VERBOSE"  ]; then
+    echo "Sending : $1"
+#  fi
+
+  #
+  # If we have nc then send the data, otherwise alert the user.
+  #
+  if ( command -v nc >/dev/null 2>/dev/null ); then
+    echo "${1}" | nc -w1 "${HOST}" "${PORT}"
+    result=${?}
+
+    if [ ${result} -eq 0 ]
+    then
+      echo "  .. successful"
+    else
+      echo "  .. failed"
+    fi
+  else
+      echo "nc (netcat) is not present.  Aborting"
+  fi
+}
+
+
+
+send_metrics() {
+
+  ##
+  ## Fork-count
+  ##
+  if [ -e /proc/stat ]; then
+      forked=$(awk '/processes/ {print $2}' /proc/stat)
+      send "qa.$host.process.forked $forked $time"
+  fi
+
+
+  ##
+  ## Process-count
+  ##
+  if ( command -v ps >/dev/null 2>/dev/null ); then
+      pcount=$(ps -Al | wc -l)
+      send "qa.$host.process.count  $pcount $time"
+  fi
+}
+
+
+
+
+
 inspect() {
 
   echo ""
@@ -94,6 +167,7 @@ then
   inspect
   wait_for_graphite
   send_request
+  send_metrics
   exit 0
 else
   echo "please run "
