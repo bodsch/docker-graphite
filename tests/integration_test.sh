@@ -87,60 +87,112 @@ send_request() {
 }
 
 
-###
-##
-## A simple function to send data to a remote host:port address.
-##
-###
+# A simple function to send data to a remote host:port address.
+#
 send() {
 
-#  if [ ! -z "$VERBOSE"  ]; then
-    echo "Sending : $1"
-#  fi
+  echo "  - '${1}'"
 
   #
   # If we have nc then send the data, otherwise alert the user.
   #
-  if ( command -v nc >/dev/null 2>/dev/null ); then
+  if ( command -v nc >/dev/null 2>/dev/null )
+  then
     echo "${1}" | nc -w1 "${HOST}" "${PORT}"
     result=${?}
 
     if [ ${result} -eq 0 ]
     then
-      echo "  .. successful"
+      echo "     successful"
     else
-      echo "  .. failed"
+      echo "     failed"
     fi
   else
-      echo "nc (netcat) is not present.  Aborting"
+    echo "nc (netcat) is not present.  Aborting"
   fi
 }
-
 
 
 send_metrics() {
 
-  ##
-  ## Fork-count
-  ##
+  host=$(hostname --short)
+
+  _time() {
+    echo $(date +%s)
+  }
+
+  echo -e "\nsend some metrics to graphite .."
+  echo -e "\n  - classic style"
+  # Fork-count
+  #
   if [ -e /proc/stat ]; then
-      forked=$(awk '/processes/ {print $2}' /proc/stat)
-      send "qa.$host.process.forked $forked $time"
+    forked=$(awk '/processes/ {print $2}' /proc/stat)
+    send "${host}.process.forked ${forked} $(_time)"
   fi
 
-
-  ##
-  ## Process-count
-  ##
-  if ( command -v ps >/dev/null 2>/dev/null ); then
-      pcount=$(ps -Al | wc -l)
-      send "qa.$host.process.count  $pcount $time"
+  # Process-count
+  #
+  if ( command -v ps >/dev/null 2>/dev/null )
+  then
+    pcount=$(ps -Al | wc -l)
+    send "process.count ${pcount} $(_time)"
   fi
+
+  echo -e "\n  - with tags"
+  # Fork-count
+  #
+  if [ -e /proc/stat ]; then
+    forked=$(awk '/processes/ {print $2}' /proc/stat)
+    send "process.forked;type=qa,server=${host} ${forked} $(_time)"
+  fi
+
+  # Process-count
+  #
+  if ( command -v ps >/dev/null 2>/dev/null )
+  then
+    pcount=$(ps -Al | wc -l)
+    send "process.count;type=qa,server=${host} ${forked} $(_time)"
+  fi
+
 }
 
 
+send_tags() {
+
+  curl \
+    --silent\
+    --request POST "http://localhost:8080/tags/tagMultiSeries" \
+    --data-urlencode 'path=disk.used;rack=a1;datacenter=dc1;server=web01' \
+    --data-urlencode 'path=disk.used;rack=a1;datacenter=dc1;server=web02' \
+    --data-urlencode 'pretty=1' > /dev/null
+}
 
 
+get_tags() {
+
+  curl \
+    --silent \
+    "http://localhost:8080/tags?pretty="1
+}
+
+
+add_event() {
+
+  echo -e "\nadd event"
+  curl \
+    --silent \
+    --request POST \
+    http://localhost:8080/events -d '{"what": "Something Interesting", "tags" : "tag1"}'
+
+  result=${?}
+
+  if [ ${result} -eq 0 ]
+  then
+    echo "  successful"
+  else
+    echo "  failed"
+  fi
+}
 
 inspect() {
 
@@ -159,15 +211,21 @@ inspect() {
 }
 
 
-echo "wait 15 seconds for start"
-sleep 15s
+#echo "wait 15 seconds for start"
+#sleep 15s
 
-if [[ $(docker ps | tail -n +2 | wc -l) -eq 1 ]]
+if [[ $(docker ps | tail -n +2 | grep -c graphite) -eq 1 ]]
 then
   inspect
   wait_for_graphite
   send_request
   send_metrics
+
+  #send_tags
+  #get_tags
+
+  add_event
+
   exit 0
 else
   echo "please run "

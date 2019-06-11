@@ -10,8 +10,7 @@ configure_sqlite() {
     -e "s|%DBA_PASS%||g" \
     -e "s|%DBA_HOST%||g" \
     -e "s|%DBA_PORT%||g" \
-    ${CONFIG_FILE}
-
+    "${CONFIG_FILE}"
 }
 
 configure_sqlite

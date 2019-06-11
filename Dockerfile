@@ -42,7 +42,7 @@ RUN \
     "python${PYTHON_VERSION}" \
     "py${PYTHON_VERSION}-cairo" \
     "py${PYTHON_VERSION}-parsing" && \
-  if [[ "${PYTHON_VERSION}" = 2 ]] ; then \
+  if [ "${PYTHON_VERSION}" = 2 ] ; then \
     apk add   --quiet \
       supervisor \
       py-mysqldb && \
@@ -51,7 +51,7 @@ RUN \
       --trusted-host http://d.pypi.python.org/simple \
       --upgrade \
       pip ; \
-  elif [[ "${PYTHON_VERSION}" = 3 ]] ; then \
+  elif [ "${PYTHON_VERSION}" = 3 ] ; then \
     python3 -m ensurepip && \
     rm -r /usr/lib/python*/ensurepip && \
     pip3 install \
@@ -73,14 +73,14 @@ RUN \
   git clone https://github.com/graphite-project/whisper.git      /tmp/whisper      && \
   git clone https://github.com/graphite-project/carbon.git       /tmp/carbon       && \
   git clone https://github.com/graphite-project/graphite-web.git /tmp/graphite-web && \
-  if [ "${BUILD_TYPE}" == "stable" ] ; then \
+  if [ "${BUILD_TYPE}" = "stable" ] ; then \
     for i in whisper carbon graphite-web ; do \
       echo "switch to stable Tag ${GRAPHITE_VERSION} for $i" && \
       cd /tmp/$i ; \
       git checkout "tags/${GRAPHITE_VERSION}" 2> /dev/null ; \
     done ; \
   fi && \
-  if [[ "${PYTHON_VERSION}" = 3 ]] ; then \
+  if [ "${PYTHON_VERSION}" = 3 ] ; then \
     sed -i 's|^python-memcached|# python-memcached|g' /tmp/graphite-web/requirements.txt; \
   fi && \
   cd /tmp/graphite-web &&  "pip${PYTHON_VERSION}" install --quiet --requirement requirements.txt && \

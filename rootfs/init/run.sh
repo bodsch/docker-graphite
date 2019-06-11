@@ -2,7 +2,7 @@
 #
 
 
-[[ ${DEBUG} ]] && set -x
+[ -n "${DEBUG}" ] && set -x
 
 . /etc/profile
 
@@ -39,11 +39,11 @@ prepare() {
     -e "s|%STORAGE_PATH%|${WORK_DIR}|g" \
     ${CONFIG_FILE}
 
-  if [[ ! -z ${MEMCACHE_HOST} ]]
+  if [[ -n "${MEMCACHE_HOST}" ]]
   then
     sed -i \
-      -e 's|%MEMCACHE_HOST%|'${MEMCACHE_HOST}'|g' \
-      -e 's|%MEMCACHE_PORT%|'${MEMCACHE_PORT}'|g' \
+      -e 's|%MEMCACHE_HOST%|'"${MEMCACHE_HOST}"'|g' \
+      -e 's|%MEMCACHE_PORT%|'"${MEMCACHE_PORT}"'|g' \
       -e 's|# MEMCACHE_HOSTS|MEMCACHE_HOSTS|g' \
       ${CONFIG_FILE}
   fi
@@ -63,8 +63,9 @@ setup() {
 
   chown -R nginx ${WORK_DIR}/graphite/storage
 
-  PYTHONPATH=/opt/graphite/webapp django-admin.py migrate --verbosity 1 --settings=graphite.settings --noinput
-  PYTHONPATH=/opt/graphite/webapp django-admin.py migrate --verbosity 1 --run-syncdb --settings=graphite.settings --noinput
+  log_info "configure graphite"
+  PYTHONPATH=/opt/graphite/webapp django-admin.py migrate --verbosity 0 --settings=graphite.settings --noinput
+  PYTHONPATH=/opt/graphite/webapp django-admin.py migrate --verbosity 0 --run-syncdb --settings=graphite.settings --noinput
 }
 
 
@@ -78,7 +79,7 @@ start_supervisor() {
   log_info " graphite ${GRAPHITE_VERSION} (${BUILD_TYPE}) / python ${python_version} build: ${BUILD_DATE}"
   log_info "-----------------------------------------------------------"
 
-  [[ -f /etc/supervisord.conf ]] && /usr/bin/supervisord -c /etc/supervisord.conf >> /dev/null
+  [ -f /etc/supervisord.conf ] && /usr/bin/supervisord -c /etc/supervisord.conf >> /dev/null
 }
 
 # -------------------------------------------------------------------------------------------------
