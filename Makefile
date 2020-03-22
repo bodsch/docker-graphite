@@ -5,7 +5,7 @@ export DOCKER_VERSION    ?= latest
 export BUILD_DATE        := $(shell date +%Y-%m-%d)
 export BUILD_VERSION     := $(shell date +%y%m)
 export BUILD_TYPE        ?= stable
-export GRAPHITE_VERSION  ?= 1.1.5
+export GRAPHITE_VERSION  ?= 1.1.7
 export PYTHON_VERSION    ?= 3
 
 

@@ -57,7 +57,7 @@ RUN \
     pip3 install \
       --quiet \
       --upgrade \
-      pip setuptools && \
+      pip wheel setuptools && \
     [ ! -e /usr/bin/pip ]    && ln -s pip3 /usr/bin/pip ; \
     [ ! -e /usr/bin/python ] && ln -sf /usr/bin/python3 /usr/bin/python ; \
     pip install \
