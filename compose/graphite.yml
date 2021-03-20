@@ -14,7 +14,6 @@ services:
         - BUILD_VERSION=${BUILD_VERSION}
         - BUILD_TYPE=${BUILD_TYPE}
         - GRAPHITE_VERSION=${GRAPHITE_VERSION}
-        - PYTHON_VERSION=${PYTHON_VERSION}
     container_name: graphite
     hostname: graphite
     ports:

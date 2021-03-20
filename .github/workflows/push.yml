@@ -1,0 +1,60 @@
+name: Push
+
+on:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: '0 18 * * sun'
+
+jobs:
+  push:
+    name: push graphite ${{ matrix.graphite_version }}
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        graphite_version:
+          - 1.1.5
+          - 1.1.6
+          - 1.1.7
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build Docker image
+        run: |
+          make build
+        env:
+          GRAPHITE_VERSION: ${{ matrix.graphite_version }}
+
+      - name: Push Docker image to Docker Hub
+        run: |
+          # Login on dockerhub.io before pushing
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          # Pushing image to dockerhub
+          docker buildx build \
+            --push \
+            --file=Dockerfile \
+            --tag=bodsch/docker-graphite:${GRAPHITE_VERSION} \
+            docker-graphite:${GRAPHITE_VERSION}
+        env:
+          GRAPHITE_VERSION: ${{ matrix.graphite_version }}
+
+
+      - name: Push Docker image to Github Docker registry
+        run: |
+          # Login on Github Docker registry before pushing
+          echo "${{ secrets.GH_REGISTRY_TOKEN }}" | docker login docker.pkg.github.com -u bodsch --password-stdin
+          # Pushing image to Github Docker registry
+          docker push \
+            docker.pkg.github.com/bodsch/docker-graphite/docker-graphite:${{ matrix.graphite_version }}
+        env:
+          GRAPHITE_VERSION: ${{ matrix.graphite_version }}
