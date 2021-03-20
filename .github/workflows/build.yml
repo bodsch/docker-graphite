@@ -40,6 +40,7 @@ jobs:
         run: |
           make compose-file
           docker-compose up --build -d
+          sleep 15s
           make test
           docker-compose down
         env:
