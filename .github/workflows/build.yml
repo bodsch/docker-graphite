@@ -34,12 +34,14 @@ jobs:
           make build
         env:
           PY_COLORS: '1'
-          ANSIBLE_FORCE_COLOR: '1'
           GRAPHITE_VERSION: ${{ matrix.graphite_version }}
 
-      # - name: Test Docker images
-      #   run: |
-      #     make compose-file
-      #     docker-compose up --build -d
-      #     make test
-      #     docker-compose down
+      - name: Test Docker images
+        run: |
+          make compose-file
+          docker-compose up --build -d
+          make test
+          docker-compose down
+        env:
+          PY_COLORS: '1'
+          GRAPHITE_VERSION: ${{ matrix.graphite_version }}
