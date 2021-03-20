@@ -52,19 +52,19 @@ jobs:
           GRAPHITE_VERSION: ${{ matrix.graphite_version }}
 
 
-      - name: Push Docker image to Github Docker registry
-        run: |
-          # Login on Github Docker registry before pushing
-          echo "${{ secrets.GH_REGISTRY_TOKEN }}" | docker login docker.pkg.github.com -u bodsch --password-stdin
-          # Pushing image to Github Docker registry
-          #
-          docker tag  ${USER}/graphite:latest bodsch/docker-graphite:latest
-          docker push \
-            docker.pkg.github.com/bodsch/docker-graphite:latest
-          #
-          docker tag  ${USER}/graphite:latest bodsch/docker-graphite:${GRAPHITE_VERSION}
-          docker push \
-            docker.pkg.github.com/bodsch/docker-graphite:${GRAPHITE_VERSION}
-          #
-        env:
-          GRAPHITE_VERSION: ${{ matrix.graphite_version }}
+      # - name: Push Docker image to Github Docker registry
+      #   run: |
+      #     # Login on Github Docker registry before pushing
+      #     echo "${{ secrets.GH_REGISTRY_TOKEN }}" | docker login docker.pkg.github.com -u bodsch --password-stdin
+      #     # Pushing image to Github Docker registry
+      #     #
+      #     docker tag  ${USER}/graphite:latest bodsch/docker-graphite:latest
+      #     docker push \
+      #       docker.pkg.github.com/bodsch/docker-graphite:latest
+      #     #
+      #     docker tag  ${USER}/graphite:latest bodsch/docker-graphite:${GRAPHITE_VERSION}
+      #     docker push \
+      #       docker.pkg.github.com/bodsch/docker-graphite:${GRAPHITE_VERSION}
+      #     #
+      #   env:
+      #     GRAPHITE_VERSION: ${{ matrix.graphite_version }}
