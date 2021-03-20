@@ -4,17 +4,19 @@ HOST=127.0.0.1
 PORT=2003
 
 PUP_VERSION='0.4.0'
-PUP_PATH='/usr/local/bin'
-if ! [ -x "$(command -v pup)" ]
+PUP_PATH='/var/tmp/bin'
+if ! [ -f "${PUP_PATH}/pup" ]
 then
-  sudo curl \
+  [ -d "${PUP_PATH}" ] || mkdir -p "${PUP_PATH}"
+  # Parsing HTML at the command line
+  curl \
     --silent \
     --location \
     --output "${PUP_PATH}/pup.zip" \
     "https://github.com/ericchiang/pup/releases/download/v${PUP_VERSION}/pup_v${PUP_VERSION}_linux_amd64.zip"
-  sudo unzip "${PUP_PATH}/pup.zip" -d "${PUP_PATH}"
-  sudo chmod +x "${PUP_PATH}/pup"
-  sudo rm -f "${PUP_PATH}/pup.zip"
+  unzip "${PUP_PATH}/pup.zip" -d "${PUP_PATH}"
+  chmod +x "${PUP_PATH}/pup"
+  rm -f "${PUP_PATH}/pup.zip"
 fi
 
 #
@@ -108,7 +110,7 @@ send() {
       echo "     failed"
     fi
   else
-    echo "nc (netcat) is not present.  Aborting"
+    echo "nc (openbsd-netcat) is not present.  Aborting"
   fi
 }
 

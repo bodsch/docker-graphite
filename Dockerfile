@@ -1,11 +1,10 @@
-FROM alpine:3.10
+FROM alpine:3.11
 
 ARG VCS_REF
 ARG BUILD_DATE
 ARG BUILD_VERSION
 ARG BUILD_TYPE
 ARG GRAPHITE_VERSION
-ARG PYTHON_VERSION
 
 ENV \
   TZ='Europe/Berlin' \
@@ -19,7 +18,7 @@ EXPOSE 2003 2003/udp 7002 8080
 # ---------------------------------------------------------------------------------------
 
 WORKDIR /tmp
-# hadolint ignore=DL3003,DL3013,DL3017,DL3018,DL3019
+# hadolint ignore=DL3003,DL3013,DL3017,DL3018,DL3019,SC2015
 RUN \
   echo "export BUILD_DATE=${BUILD_DATE}"              > /etc/profile.d/graphite.sh && \
   echo "export BUILD_TYPE=${BUILD_TYPE}"             >> /etc/profile.d/graphite.sh && \
@@ -31,43 +30,23 @@ RUN \
     git \
     libffi-dev \
     libressl-dev \
-    "py${PYTHON_VERSION}-pip" \
-    "python${PYTHON_VERSION}-dev" \
+    py3-pip \
+    python3-dev \
     tzdata && \
   apk add     --quiet \
     cairo \
     curl \
-    mariadb-client \
     nginx \
-    "python${PYTHON_VERSION}" \
-    "py${PYTHON_VERSION}-cairo" \
-    "py${PYTHON_VERSION}-parsing" && \
-  if [ "${PYTHON_VERSION}" = 2 ] ; then \
-    apk add   --quiet \
-      supervisor \
-      py-mysqldb && \
-    "pip${PYTHON_VERSION}" install \
-      --quiet \
-      --trusted-host http://d.pypi.python.org/simple \
-      --upgrade \
-      pip ; \
-  elif [ "${PYTHON_VERSION}" = 3 ] ; then \
-    python3 -m ensurepip && \
-    rm -r /usr/lib/python*/ensurepip && \
-    pip3 install \
-      --quiet \
-      --upgrade \
-      pip wheel setuptools && \
-    [ ! -e /usr/bin/pip ]    && ln -s pip3 /usr/bin/pip ; \
-    [ ! -e /usr/bin/python ] && ln -sf /usr/bin/python3 /usr/bin/python ; \
-    pip install \
-      --quiet git+https://github.com/Supervisor/supervisor ; \
-    pip install \
-      --quiet pymysql ; \
-  else \
-    echo "wrong python version: ${PYTHON_VERSION}" ; \
-    exit 1 ; \
-  fi && \
+    python3 \
+    py3-cairo \
+    py3-parsing && \
+  pip3 install \
+    --quiet \
+    --upgrade \
+    pip wheel setuptools && \
+  pip3 install \
+    --quiet \
+    supervisor==4.2.2 && \
   cp "/usr/share/zoneinfo/${TZ}" /etc/localtime && \
   echo "${TZ}" > /etc/timezone && \
   git clone https://github.com/graphite-project/whisper.git      /tmp/whisper      && \
@@ -80,13 +59,22 @@ RUN \
       git checkout "tags/${GRAPHITE_VERSION}" 2> /dev/null ; \
     done ; \
   fi && \
-  if [ "${PYTHON_VERSION}" = 3 ] ; then \
-    sed -i 's|^python-memcached|# python-memcached|g' /tmp/graphite-web/requirements.txt; \
-  fi && \
-  cd /tmp/graphite-web &&  "pip${PYTHON_VERSION}" install --quiet --requirement requirements.txt && \
-  cd /tmp/whisper      &&  python -W ignore::UserWarning:distutils.dist setup.py install --quiet > /dev/null && \
-  cd /tmp/carbon       &&  python -W ignore::UserWarning:distutils.dist setup.py install --quiet > /dev/null && \
-  cd /tmp/graphite-web &&  python -W ignore::UserWarning:distutils.dist setup.py install --quiet > /dev/null && \
+  # install graphite-web
+  # cd /tmp/graphite-web && \
+  # pip3 install --quiet --requirement requirements.txt && \
+  # install whisper
+  cd /tmp/whisper      && \
+  pip3 install --quiet --requirement requirements.txt && \
+  python3 setup.py install --quiet > /dev/null && \
+  # install carbon
+  cd /tmp/carbon       && \
+  pip3 install --quiet --requirement requirements.txt && \
+  python3 setup.py install --quiet > /dev/null && \
+  # install graphite-web
+  cd /tmp/graphite-web && \
+  pip3 install --quiet --requirement requirements.txt && \
+  python3 setup.py install --quiet > /dev/null && \
+  #
   mv /opt/graphite/conf/graphite.wsgi.example /opt/graphite/webapp/graphite/graphite_wsgi.py && \
   mv /tmp/carbon/lib/carbon/tests/data/conf-directory/storage-aggregation.conf /opt/graphite/conf/storage-aggregation.conf-DIST && \
   mv /tmp/carbon/lib/carbon/tests/data/conf-directory/storage-schemas.conf     /opt/graphite/conf/storage-schemas.conf-DIST && \
@@ -95,20 +83,21 @@ RUN \
     /src \
     /tmp/* \
     /root/.cache \
-    /var/cache/apk/*
+    /var/cache/apk/* && \
+  find / -type d -name __pycache__ -exec rm -rf {} \; 2> /dev/null || true
 
 COPY rootfs/ /
 
 WORKDIR /opt/graphite
 
-VOLUME /srv
+VOLUME ["/srv", "/opt/graphite"]
 
 CMD ["/init/run.sh"]
 
 HEALTHCHECK \
-  --interval=5s \
+  --interval=10s \
   --timeout=2s \
-  --retries=12 \
+  --retries=5 \
   CMD curl --silent --fail http://localhost:8080 || exit 1
 
 # ---------------------------------------------------------------------------------------

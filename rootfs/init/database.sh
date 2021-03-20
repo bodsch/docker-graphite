@@ -1,4 +1,6 @@
 
+DATABASE_TYPE=sqlite
+
 DATABASE_TYPE=${DATABASE_TYPE:-sqlite}
 
 if [[ "${DATABASE_TYPE}" == "sqlite" ]]

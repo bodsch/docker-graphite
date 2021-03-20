@@ -13,6 +13,8 @@ MEMCACHE_PORT=${MEMCACHE_PORT:-11211}
 
 USE_EXTERNAL_CARBON=${USE_EXTERNAL_CARBON:-false}
 
+GRAPHITE_SECRET_KEY=${GRAPHITE_SECRET_KEY:-JrPEqRREAs9Jnx6l8umPEl8YNDPUPZFxU1fqIgS8b8}
+
 CONFIG_FILE="/opt/graphite/webapp/graphite/local_settings.py"
 
 . /init/output.sh
@@ -36,6 +38,7 @@ prepare() {
   [[ -f ${CONFIG_FILE} ]] || cp ${CONFIG_FILE}-DIST ${CONFIG_FILE}
 
   sed -i \
+    -e "s|%GRAPHITE_SECRET_KEY%|${GRAPHITE_SECRET_KEY}|g" \
     -e "s|%STORAGE_PATH%|${WORK_DIR}|g" \
     ${CONFIG_FILE}
 
@@ -71,7 +74,7 @@ setup() {
 
 start_supervisor() {
 
-  python_version=$(python --version 2>&1 | sed 's|Python ||g')
+  python_version=$(python3 --version 2>&1 | sed 's|Python ||g')
 
   log_info "starting supervisor"
 

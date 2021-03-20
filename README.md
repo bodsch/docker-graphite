@@ -1,37 +1,6 @@
-docker-graphite
-=================
 
 A docker container for an complete graphite stack. Usable in combination with Grafana.
 
-Supports python 2 and 3.
-
-Switch supported python version at build time:
-
-```bash
-$ export PYTHON_VERSION=2
-$ make
-$ make run
-
-
-[2018-09-10 13:47:20 +0000]  starting supervisor
-[2018-09-10 13:47:20 +0000]  -----------------------------------------------------------
-[2018-09-10 13:47:20 +0000]   graphite 1.1.4 (stable) / python 2.7.15 build: 2018-09-10
-[2018-09-10 13:47:20 +0000]  -----------------------------------------------------------
-```
-
-```bash
-$ export PYTHON_VERSION=3
-$ make
-$ make run
-
-
-[2018-09-10 13:47:20 +0000]  starting supervisor
-[2018-09-10 13:50:12 +0000]  -----------------------------------------------------------
-[2018-09-10 13:50:12 +0000]   graphite 1.1.4 (stable) / python 3.6.6 build: 2018-09-10
-[2018-09-10 13:50:12 +0000]  -----------------------------------------------------------
-```
-
-# Status
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/bodsch/docker-graphite.svg)][hub]
 [![Image Size](https://images.microbadger.com/badges/image/bodsch/docker-graphite.svg)][microbadger]
@@ -42,7 +11,19 @@ $ make run
 [travis]: https://travis-ci.org/bodsch/docker-graphite
 
 
-# Build
+Supports python 3.
+
+```bash
+$ make
+$ make run
+
+[2018-09-10 13:47:20 +0000]  starting supervisor
+[2018-09-10 13:50:12 +0000]  -----------------------------------------------------------
+[2018-09-10 13:50:12 +0000]   graphite 1.1.4 (stable) / python 3.6.6 build: 2018-09-10
+[2018-09-10 13:50:12 +0000]  -----------------------------------------------------------
+```
+
+## Build
 
 Your can use the included Makefile.
 
@@ -62,15 +43,17 @@ History `make history`
 
 
 
-# Docker Hub
+## Docker Hub
 
 You can find the Container also at  [DockerHub](https://hub.docker.com/r/bodsch/docker-graphite/)
 
-## get
+
+
+### get
 
     docker pull bodsch/docker-graphite
 
-## run
+### run
 
     docker run \
       --rm \
@@ -86,20 +69,19 @@ You can find the Container also at  [DockerHub](https://hub.docker.com/r/bodsch/
 
 Notes:
 
-* Please make sure to specify a hostname, so that internal metrics of carbon are not saved with a temporary hostname
+- Please make sure to specify a hostname, so that internal metrics of carbon are not saved with a temporary hostname
 
-# supported Environment Vars
+## supported Environment Vars
 
-- `DATABASE_TYPE` (default: `sqlite`)
-- `MYSQL_HOST`
-- `MYSQL_PORT`
-- `MYSQL_ROOT_USER` (default: `root`)
-- `MYSQL_ROOT_PASS`
-- `DATABASE_GRAPHITE_PASS` (default: `graphite`)
 - `MEMCACHE_HOST`
 - `MEMCACHE_PORT` (default: `11211`)
 - `USE_EXTERNAL_CARBON` (default: `false`)
+- `GRAPHITE_SECRET_KEY`
 
+## Ports
+ - `2003`: the Carbon line receiver port (tcp and udp)
+ - `7002`: the Carbon cache query port
+ - `8080`: the Graphite-Web port
 
 ## Limitations
 
@@ -111,22 +93,18 @@ The `sqlite` database will only created in the `/tmp` directory and not used.
 When your using a external carbon-writer (like `go-carbon`) you do not need the internal carbon.
 You can disable this part with `USE_EXTERNAL_CARBON`.
 
+## internatls
 
-# includes
+### includes
 - graphite-web
 - whisper
 - carbon-cache
 - nginx
 
-
-# Ports
- - 2003: the Carbon line receiver port (tcp and udp)
- - 7002: the Carbon cache query port
- - 8080: the Graphite-Web port
-
 # Storage Schemas and Retention Period
 
-The configuration is located at `/opt/graphite/conf/storage-schemas.conf` and has this default entries:
+The configuration is located at `/opt/graphite/conf/storage-schemas.conf` and has this default
+entries:
 
 ```bash
 [carbon]
@@ -161,4 +139,3 @@ Additionally, this example uses multiple retentions:
 
 To calculate the whisper file size, I can recommend this tool: [whisper-calculator](https://m30m.github.io/whisper-calculator/)
 ([gist](https://gist.github.com/jjmaestro/5774063))
-

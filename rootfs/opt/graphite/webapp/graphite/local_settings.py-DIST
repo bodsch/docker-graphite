@@ -7,11 +7,18 @@
 #except KeyError:
 #    pass
 
-SECRET_KEY = 'AYGKXwz5gaH98MsSDlIviZKJLh4a9eucEu5iivdn'
+SECRET_KEY = '%GRAPHITE_SECRET_KEY%'
 
 TIME_ZONE = 'Europe/Berlin'
 
 # MEMCACHE_HOSTS = ['%MEMCACHE_HOST%:%MEMCACHE_PORT%']
+
+# DEFAULT_CACHE_DURATION = 60 # Cache images and data for 1 minute
+# DEFAULT_CACHE_POLICY = [(0, 60), # default is 60 seconds
+#                        (7200, 120), # >= 2 hour queries are cached 2 minutes
+#                        (21600, 180)] # >= 6 hour queries are cached 3 minutes
+# MEMCACHE_KEY_PREFIX = 'graphite'
+# MEMCACHE_OPTIONS = { 'socket_timeout': 0.5 }
 
 DATABASES = {
   'default': {
@@ -27,6 +34,7 @@ DATABASES = {
 ## Data directories
 LOG_DIR     = '/var/log/graphite'
 # NOTE: If any directory is unreadable in DATA_DIRS it will break metric browsing
+CERES_DIR   = '%STORAGE_PATH%/graphite/storage/ceres'
 WHISPER_DIR = '%STORAGE_PATH%/graphite/storage/whisper'
 RRD_DIR     = '%STORAGE_PATH%/graphite/storage/rrd'
 INDEX_FILE  = '%STORAGE_PATH%/graphite/storage/index'  # Search index file

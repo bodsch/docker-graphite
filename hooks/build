@@ -18,5 +18,4 @@ docker build \
   --build-arg BUILD_VERSION=${BUILD_VERSION} \
   --build-arg BUILD_TYPE=${BUILD_TYPE} \
   --build-arg GRAPHITE_VERSION=${GRAPHITE_VERSION} \
-  --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
   --tag ${DOCKER_NAME_SPACE}/${DOCKER_IMAGE_NAME}:${DOCKER_VERSION} .
