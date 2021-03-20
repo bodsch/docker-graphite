@@ -40,11 +40,14 @@ jobs:
           # Login on dockerhub.io before pushing
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
           # Pushing image to dockerhub
-          docker buildx build \
-            --push \
-            --file=Dockerfile \
-            --tag=bodsch/docker-graphite:${GRAPHITE_VERSION} \
-            docker-graphite:${GRAPHITE_VERSION}
+          #
+          docker tag  ${USER}/graphite:latest bodsch/docker-graphite:latest
+          docker push bodsch/docker-graphite:latest
+          #
+          docker tag  ${USER}/graphite:latest bodsch/docker-graphite:${GRAPHITE_VERSION}
+          docker push bodsch/docker-graphite:${GRAPHITE_VERSION}
+          #
+          docker logout
         env:
           GRAPHITE_VERSION: ${{ matrix.graphite_version }}
 
